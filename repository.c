@@ -57,6 +57,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_git2_repository_init, 0,0,1)
 	ZEND_ARG_INFO(0, isBare)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_git2_repository_klone, 0,0,1)
+	ZEND_ARG_INFO(0, url)
+	ZEND_ARG_INFO(0, path)
+	ZEND_ARG_INFO(0, php_git_clone_options)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_git2_repository_discover, 0,0,3)
 	ZEND_ARG_INFO(0, path)
 	ZEND_ARG_INFO(0, across_fs)
@@ -240,6 +246,69 @@ PHP_METHOD(git2_repository, init)
 	}
 	
 	ret = git_repository_init(&repository, path, is_bare);
+	if (ret == GIT_OK) {
+		zval *object;
+		
+		MAKE_STD_ZVAL(object);
+		object_init_ex(object, git2_repository_class_entry);
+		php_git2_repository_initialize(object, repository TSRMLS_CC);
+		
+		RETVAL_ZVAL(object,0,1);
+	} else {
+		php_git2_exception_check(ret TSRMLS_CC);
+		RETURN_FALSE;
+	}
+}
+/* }}} */
+
+/*
+{{{ proto: Git2\Repository::klone(string $path [, bool isBare])
+*/
+PHP_METHOD(git2_repository, klone)
+{
+	char *path, *url;
+	int ret, path_len = 0, url_len = 0;
+	zval php_git_clone_opts;
+	git_repository *repository;
+	
+  /*
+  git_clone_options g_options;
+  git_repository *g_repo;
+  */
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,
+		"s|sa",
+		&url, &url_len,
+		&path, &path_len,
+		&php_git_clone_opts) == FAILURE) {
+		return;
+	}
+
+	// int zend_hash_find(HashTable *ht, char *key, uint nKeySize, void **pData);
+
+	if (!path || !strlen(path))
+	{
+#if HAVE_GETCWD
+		path = VCWD_GETCWD(path, MAXPATHLEN);
+#elif HAVE_GETWD
+		path = VCWD_GETWD(path);
+#endif
+	}
+
+  /*
+	git_checkout_opts dummy_opts = GIT_CHECKOUT_OPTS_INIT;
+
+	g_repo = NULL;
+
+	memset(&g_options, 0, sizeof(git_clone_options));
+	g_options.version = GIT_CLONE_OPTIONS_VERSION;
+	g_options.checkout_opts = dummy_opts;
+	g_options.checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
+  */
+
+	ret = git_clone(&repository, url, path, NULL, NULL, NULL);
+  printf("ret: %d\n", ret);
+
 	if (ret == GIT_OK) {
 		zval *object;
 		
@@ -583,9 +652,10 @@ static zend_function_entry php_git2_repository_methods[] = {
 	PHP_ME(git2_repository, headDetached,NULL,                                ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, headOrphan,  NULL,                                ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, init,        arginfo_git2_repository_init,        ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(git2_repository, klone,       arginfo_git2_repository_klone,       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(git2_repository, discover,    arginfo_git2_repository_discover,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(git2_repository, exists,      arginfo_git2_repository_exists,      ZEND_ACC_PUBLIC)
-	PHP_ME(git2_repository, hash,        arginfo_git2_repository_hash,       ZEND_ACC_PUBLIC)
+	PHP_ME(git2_repository, hash,        arginfo_git2_repository_hash,        ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, write,       arginfo_git2_repository_write,       ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, getMergeBase,arginfo_git2_repository_get_merge_base,ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, checkout,    arginfo_git2_repository_checkout, ZEND_ACC_PUBLIC)
