@@ -57,7 +57,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_git2_repository_init, 0,0,1)
 	ZEND_ARG_INFO(0, isBare)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_git2_repository_klone, 0,0,1)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_git2_repository_clone, 0,0,1)
 	ZEND_ARG_INFO(0, url)
 	ZEND_ARG_INFO(0, path)
 	ZEND_ARG_INFO(0, php_git_clone_options)
@@ -262,9 +262,9 @@ PHP_METHOD(git2_repository, init)
 /* }}} */
 
 /*
-{{{ proto: Git2\Repository::klone(string $path [, bool isBare])
+{{{ proto: Git2\Repository::clone(string $path [, bool isBare])
 */
-PHP_METHOD(git2_repository, klone)
+PHP_METHOD(git2_repository, clone)
 {
 	char *path, *url;
 	int ret, path_len = 0, url_len = 0;
@@ -652,7 +652,7 @@ static zend_function_entry php_git2_repository_methods[] = {
 	PHP_ME(git2_repository, headDetached,NULL,                                ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, headOrphan,  NULL,                                ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, init,        arginfo_git2_repository_init,        ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-	PHP_ME(git2_repository, klone,       arginfo_git2_repository_klone,       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+	PHP_ME(git2_repository, clone,       arginfo_git2_repository_clone,       ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(git2_repository, discover,    arginfo_git2_repository_discover,    ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 	PHP_ME(git2_repository, exists,      arginfo_git2_repository_exists,      ZEND_ACC_PUBLIC)
 	PHP_ME(git2_repository, hash,        arginfo_git2_repository_hash,        ZEND_ACC_PUBLIC)
